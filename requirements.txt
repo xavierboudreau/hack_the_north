@@ -10,7 +10,7 @@ itsdangerous==0.24
 Jinja2==2.10
 MarkupSafe==1.0
 networkx==1.11
-openbabel-python==2.4.1
+openbabel-python
 psutil==5.4.7
 PyBEL==0.11.0
 pyparsing==2.2.0

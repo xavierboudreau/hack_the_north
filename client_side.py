@@ -1,14 +1,32 @@
+import urllib.parse
+import urllib.request
 import psutil
 
-def get_id():
-	pass
+def get_id(server_url):
+	get_request = "{}/{}".format(server_url, 'id')
+	content = urllib.urlrequest.urlopen(get_request).read()
+	#extract id and status code
 	
-def get_chunk():
-	pass
+def get_chunk(server_url):
+	parameters = urllib.parse.urlencode({"id": id})
+	parameters = parameters.encode("utf-8")
+	get_request = "{}/{}?{}".format(server_url, 'data', parameters)
+	content = urllib.urlrequest.urlopen(get_request).read()
+	
+	#extract chunk, we don't know what this looks like yet
+	#we want to return None if there was no chunk provided
+	return content
 
-def send_result():
-	pass
-
+def send_result(server_url, result, solution):
+	server_url = "{}/{}".format(server_url, "data")
+	data = urllib.parse.urlencode({"id": id, "result": result, "solution": solution})
+	data = data.encode("utf-8")
+	request = urllib.request.Request(server_url, data)
+	content = urllib.request.urlopen(request).read()
+	
+	#extract and return result code
+	return content
+	
 def solve_chunk():
 	pass
 

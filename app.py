@@ -8,7 +8,7 @@ userInfo = {}
 
 
 @app.route('/api/data', methods=['GET', 'POST'])
-def collection():
+def api_data():
     if request.method == 'GET':
         pass  # Handle GET all Request
     elif request.method == 'POST':
@@ -17,7 +17,7 @@ def collection():
 
 
 @app.route('/api/id', methods=['GET'])
-def identification():
+def api_id():
     if request.method == 'GET':
         userId = uuid.uuid4()
         userInfo[userId] = None

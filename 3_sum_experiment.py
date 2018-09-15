@@ -1,13 +1,18 @@
 from random import randint
+from random import sample
 
-def make_three_sum(clauses = 10):
+def make_three_sum(clauses = 1000, variables = 32):
 	equation = []
-	#let 0 represent not, 1 represent regular variable
 	for i in range(clauses):
-		X0 = randint(0,1)
-		X1 = randint(0,1)
-		X2 = randint(0,1)
-		equation.append((X0, X1, X2))
+		X0 = randint(0, variables) * sample(set([1,-1]), 1)[0]
+		X1 = randint(0, variables) * sample(set([1,-1]), 1)[0]
+		while (X1 == X0):
+			X1 = randint(0, variables) * sample(set([1,-1]),1)[0]
+		X2 = randint(0, variables) * sample(set([1,-1]), 1)[0]
+		while (X2 == X1 or X2 == X0):
+			X2 = randint(0, variables) * sample(set([1,-1]), 1)[0]
+		equation.append([X0, X1, X2])
+	print(equation)
 	return equation
 
 def get_chunks(clauses, chunk_size):
@@ -15,7 +20,7 @@ def get_chunks(clauses, chunk_size):
 	num_chunk_size_chunks = input_size//chunk_size
 	partial_chunk = input_size%chunk_size
 	return num_chunk_size_chunks, partial_chunk
-	
+
 def master():
 	clauses = 10
 	chunk_size = 10000000
@@ -23,9 +28,9 @@ def master():
 	print(equation)
 	num_chunks, partial_chunk_size = get_chunks(clauses, chunk_size)
 	sum_ = partial_chunk_size + num_chunks*chunk_size
-	
+
 	result = False
-	
+
 	if (client(equation, 0, partial_chunk_size-1)):
 		result = True
 		return result
@@ -34,9 +39,9 @@ def master():
 		if client(equation, curr, curr+chunk_size-1):
 			result = True
 			return result
-	
+
 	return result
-	
+
 def try_permutation(equation, bin_array):
 	i = 0
 	for clause in equation:
@@ -60,7 +65,7 @@ def to_binary(dec, num_terms):
 def client(equation, start, stop):
 	#tests three sum from start to stop (inclusive)
 	success = False
-	
+
 	curr = start
 	num_terms = len(equation)*3
 	while curr <= stop:
@@ -69,10 +74,8 @@ def client(equation, start, stop):
 			success = True
 			return success
 		curr += 1
-	
+
 	return success
-	
+
 if __name__ == "__main__":
-	m = master()
-	print(m)
-	
+	make_three_sum()

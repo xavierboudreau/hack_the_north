@@ -4,6 +4,7 @@ import psutil
 import json
 import sys
 import requests
+from time import sleep
 
 def get_id(server_url):
     get_request = "{}/{}/{}".format(server_url, 'api','id')
@@ -47,18 +48,24 @@ def get_chunk(server_url, id):
             print(error_message.format("equations"))
             sys.exit()
 
-        return start, stop, equation
+        try:
+            num_variables = response_table["num_variables"]
+        except KeyError:
+            print(error_message.format("equations"))
+            sys.exit()
+
+        return start, stop, equation, num_variables
 
 
     except json.JSONDecodeError:
         print("COULDN'T DESERIALIZE CHUNK. FAILING NOW")
-        sys.exit()
+        exit()
 
 
 def send_result(server_url, result, solution, id):
     parameters = urllib.parse.urlencode({"id": id})
     post_request = "{}/{}/{}?{}".format(server_url, 'api', 'data', parameters)
-    requests.post(post_request, json = {'result': result, 'solution': solution})
+    result = requests.post(post_request, json = {'result': result, 'solution': solution})
 
 def monitor_extra_usage():
     #return True if CPU usage is greater than MAX, else false
@@ -89,6 +96,7 @@ def try_permutation(equation, curr, num_variables):
         variables.append((i+1)*literal)
         curr = curr // 2
 
+
     for clause in equation:
         l0 = clause[0]
         l1 = clause[1]
@@ -104,14 +112,22 @@ def try_permutation(equation, curr, num_variables):
 
 def main():
     server_url = "https://sadx-miner.herokuapp.com"
-    # server_url = "http://127.0.0.1:5000"
+    server_url = "http://127.0.0.1:5000"
     id = get_id(server_url)
-    start, stop, equation = get_chunk(server_url, id)
+    while(True):
+        try:
+            start, stop, equation, num_var = get_chunk(server_url, id)
+            break
+        except urllib.error.HTTPError:
+            pass
+            
     #assume we get None when there are no more chunks to process
     while len(equation) != 0:
-        result, solution = solve_chunk(equation, start, stop, 16)
+        result, solution = solve_chunk(equation, start, stop, num_var)
         send_result(server_url, result, solution, id)
-        start, stop, equation = get_chunk(server_url, id)
+        start, stop, equation, num_var = get_chunk(server_url, id)
+        if start == -1:
+            break
 
         #for now just terminate when we don't have a chunk to process
         #later we can wait and check for a new one

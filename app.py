@@ -11,6 +11,7 @@ import pdb
 import os
 import threading
 
+lock = threading.Lock()
 account_sid = "AC43d647b37856105ac82e47f42c9f439b"
 auth_token = os.environ["TWILIO"]
 app = Flask(__name__)
@@ -50,11 +51,15 @@ def check_timeouts():
         head = clientTimeline[0]
         if head[0] > time.time():
             curr = clientTimeline.get()
+            lock.acquire()
             timed_out_chunk = chunkOfUser[curr[1]]
+            lock.release()
             # TODO
             # Keep track of which ids timeout and refuse their next chunk report
             # i.e. don't accept their solution if they report True
+            lock.acquire()
             chunkOfUser[curr[1]] = None
+            lock.release()
             computeStack.append(timed_out_chunk)
         else:
             break
@@ -62,10 +67,10 @@ def check_timeouts():
             # check timeouts every 30 seconds
 
 
-call_freq = 30.0
-t = threading.Timer(call_freq, check_timeouts)
-t.daemon = True  # finish when main finishes
-t.start()
+#call_freq = 30.0
+#t = threading.Timer(call_freq, check_timeouts)
+#t.daemon = True  # finish when main finishes
+#t.start()
 
 
 def make_three_sum(clauses=1000, variables=32):
@@ -212,7 +217,10 @@ def api_data():
             return jsonify({'start': -1, 'stop': -1, 'equation': []}), 200
         # get their compute load and document it
         computeDatum = computeStack.pop()
+        print(len(computeStack))
+        lock.acquire()
         chunkOfUser[userId] = computeDatum
+        lock.release()
         # add their load to the priority queue
         clientTimeline.put(time.time() + COMP_TIME_LIMIT, userId)
         # send the value
@@ -226,7 +234,12 @@ def api_data():
         # print(data)
         if userId is None or userId is '' or 'result' not in data:
             return jsonify({}), 401
+
+        print(userId)
+        lock.acquire()
         chunkOfUser[userId] = None
+        lock.release()
+        print(chunkOfUser[userId])
         if 'result' in data and 'solution' in data:
             solution = data['solution']
             print(solution)
@@ -238,7 +251,9 @@ def api_data():
 def api_id():
     if request.method == 'GET':
         userId = str(uuid.uuid4())
+        lock.acquire()
         chunkOfUser[userId] = None
+        lock.release()
         print(chunkOfUser)
         return userId
 

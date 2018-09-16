@@ -47,7 +47,7 @@ variables = 24
 
 def check_timeouts():
     while len(clientTimeline.queue) > 0:
-       head = clientTimeline.queue[0]
+        head = clientTimeline.queue[0]
         if head[0] > time.time():
             curr = clientTimeline.get()
             timed_out_chunk = chunkOfUser[curr[1]]
@@ -232,7 +232,6 @@ def api_data():
             print(solution)
             send_sms(solution)
             return jsonify({}), 200
-            # TODO determine a procedure to do when solution is found...
 
 
 @app.route('/api/id', methods=['GET'])
@@ -244,13 +243,30 @@ def api_id():
         return userId
 
 
+@app.route('/api/reset', methods=['GET'])
+def api_reset():
+    if request.method == 'GET':
+        global clientTimeline
+        clientTimeline = PriorityQueue()
+        global chunkOfUser
+        chunkOfUser = {}
+        global equation
+        equation = []
+        global chunks
+        chunks = []
+        global computeStack
+        computeStack = []
+        return jsonify({}), 200
+
+
 def send_sms(msg):
     client = Client(account_sid, auth_token)
     message = client.messages.create(
         to="+15166100458",
         from_="+15017649009",
-        body="EUREKA! The solution is " + " ".join(msg)
+        body="EUREKA! The solution is " + " ".join(str(x) for x in msg)
     )
+
 
 if __name__ == '__main__':
     app.debug = True

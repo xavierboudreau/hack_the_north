@@ -58,7 +58,7 @@ def get_chunks(chunk_size,total_size):
     while (cur <= total_size):
         chunks.append((cur,cur+chunk_size))
         cur += chunk_size
-    return chunks 
+    return chunks
 
 
 def master():

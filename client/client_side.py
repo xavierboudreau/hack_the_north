@@ -65,7 +65,7 @@ def send_result(server_url, result, solution):
 
 
 def monitor_extra_usage():
-	#ret true if CPU usage is greater than MAX, else false
+	#return True if CPU usage is greater than MAX, else false
 	MAX = 30
 	p = psutil.cpu_percent(interval=1)
 	return p > max
@@ -75,12 +75,13 @@ def solve_chunk(equation, start, stop,num_variables):
 	while (not monitor_extra_usage())
 	    curr = start
 	    while curr < stop:
-	        if try_permutation(equation, curr, num_variables):
-	            return True
+	        success, solution = try_permutation(equation, curr, num_variables):
+	        if success:
+	        	return success, solution
 	        curr += 1
 
 	    return False
-	
+
 
 
 def try_permutation(equation, curr, num_variables):
@@ -100,9 +101,9 @@ def try_permutation(equation, curr, num_variables):
         ass1 = variables[abs(l1)-1]
         ass2 = variables[abs(l2)-1]
         if l0 != ass0 or l1 != ass1 or l2 != ass2:
-            return False
-
-    return True
+            return False, None
+	
+    return True, variables
 
 
 def main():
@@ -115,7 +116,7 @@ def main():
 		result, solution = solve_chunk(equation, start, stop, num_variables)
 		recieved = False
 		while not received:
-			code = send_result()
+			code = send_result(server_url, result, solution)
 			#update received based on code
 			received = -99
 

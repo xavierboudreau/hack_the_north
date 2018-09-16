@@ -5,9 +5,15 @@ import time
 import random
 import json
 import pdb
+import threading
+from twilio.rest import Client
+import os
 
+account_sid="AC43d647b37856105ac82e47f42c9f439b"
+auth_token=os.environ["TWILIO"]
 
 app = Flask(__name__)
+
 random.seed()
 # chunkOfUser is a dict with keys of user's id and the chunk they're currently working on
 chunkOfUser = {}
@@ -31,6 +37,25 @@ clientTimeline = PriorityQueue()
 COMP_TIME_LIMIT = 15
 solution = {'solution': None}
 
+def check_timeouts():
+	while len(clientTimeline.queue) > 0:
+		head = clientTimeline[0]
+		if head[0] > time.time():
+			curr = clientTimeline.get()
+			timed_out_chunk = chunkOfUser[curr[1]]
+			#TODO
+			#Keep track of which ids timeout and refuse their next chunk report
+			#i.e. don't accept their solution if they report True
+			chunkOfUser[curr[1]] = None
+			computeStack.append(timed_out_chunk)
+		else:
+			break
+	
+	#check timeouts every 30 seconds
+    call_freq = 30.0
+    t = threading.Timer(call_freq, check_timeouts)
+    t.daemon = True #finish when main finishes
+    t.start()
 
 @app.route('/api/data', methods=['GET', 'POST'])
 def api_data():
@@ -45,8 +70,6 @@ def api_data():
             print(chunkOfUser)
             print(2)
             return jsonify({}), 401
-        if len(computeStack) < 1:
-            return jsonify({'start': -1, 'stop': -1, 'equation': []}), 200
         # they're in our system and already working on a compute part, so don't assign them a new one
         if chunkOfUser[userId] is not None:
             print(3)
@@ -80,7 +103,20 @@ def api_id():
         print(chunkOfUser)
         return userId
 
+def send_sms():
+    client = Client(account_sid, auth_token)
+    message = client.messages.create(
+        to="+15166100458",
+        from_="+15017649009",
+        body="EUREKA!"
+    )
 
 if __name__ == '__main__':
     app.debug = True
+    #check timeouts every 30 seconds
+    call_freq = 30.0
+    t = threading.Timer(call_freq, check_timeouts)
+    t.daemon = True #finish when main finishes
+    t.start()
     app.run()
+    

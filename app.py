@@ -243,8 +243,8 @@ def api_data():
         if 'result' in data and 'solution' in data:
             solution = data['solution']
             print(solution)
+            send_sms(solution)
             return jsonify({}), 200
-            # TODO determine a procedure to do when solution is found...
 
 
 @app.route('/api/id', methods=['GET'])
@@ -258,13 +258,30 @@ def api_id():
         return userId
 
 
-def send_sms():
+@app.route('/api/reset', methods=['GET'])
+def api_reset():
+    if request.method == 'GET':
+        global clientTimeline
+        clientTimeline = PriorityQueue()
+        global chunkOfUser
+        chunkOfUser = {}
+        global equation
+        equation = []
+        global chunks
+        chunks = []
+        global computeStack
+        computeStack = []
+        return jsonify({}), 200
+
+
+def send_sms(msg):
     client = Client(account_sid, auth_token)
     message = client.messages.create(
         to="+15166100458",
         from_="+15017649009",
-        body="EUREKA!"
+        body="EUREKA! The solution is " + " ".join(str(x) for x in msg)
     )
+
 
 if __name__ == '__main__':
     app.debug = True

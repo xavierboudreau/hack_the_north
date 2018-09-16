@@ -198,13 +198,13 @@ computeStack = chunks
 @app.route('/api/data', methods=['GET', 'POST'])
 def api_data():
     if request.method == 'GET':
+        lock.acquire()
         userId = request.args.get('id')
         # if they didn't specify a user id, they're unauthorized
         if userId is None or userId is '':
             print(1)
             return jsonify({}), 401
         # if their userId was never put into the system, they're also unauthorized
-        lock.acquire()
         if userId not in chunkOfUser:
             print(chunkOfUser)
             print(2)

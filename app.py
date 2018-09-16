@@ -204,6 +204,7 @@ def api_data():
             print(1)
             return jsonify({}), 401
         # if their userId was never put into the system, they're also unauthorized
+        lock.acquire()
         if userId not in chunkOfUser:
             print(chunkOfUser)
             print(2)
@@ -218,7 +219,6 @@ def api_data():
         # get their compute load and document it
         computeDatum = computeStack.pop()
         print(len(computeStack))
-        lock.acquire()
         chunkOfUser[userId] = computeDatum
         lock.release()
         # add their load to the priority queue

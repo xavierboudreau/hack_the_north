@@ -5,11 +5,13 @@ import json
 import sys
 import requests
 from time import sleep
+import pdb
 
 def get_id(server_url):
     get_request = "{}/{}/{}".format(server_url, 'api','id')
-    content = urllib.request.urlopen(get_request).read()
-    id = content.decode("utf-8")
+    content = requests.get(get_request).text
+    id = content
+    print(id)
     #extract id and status code
     return id
 
@@ -22,8 +24,9 @@ def get_chunk(server_url, id):
     '''
     parameters = urllib.parse.urlencode({"id": id})
     get_request = "{}/{}/{}?{}".format(server_url, 'api', 'data', parameters)
-    content = urllib.request.urlopen(get_request).read()
-    json_result = content.decode("utf-8")
+    result = requests.get(get_request)
+    json_result = result.text
+    pdb.set_trace()
 
     try:
         response_table = json.loads(json_result)
@@ -112,14 +115,9 @@ def try_permutation(equation, curr, num_variables):
 
 def main():
     server_url = "https://sadx-miner.herokuapp.com"
-    server_url = "http://127.0.0.1:5000"
+    #server_url = "http://127.0.0.1:5000"
     id = get_id(server_url)
-    while(True):
-        try:
-            start, stop, equation, num_var = get_chunk(server_url, id)
-            break
-        except urllib.error.HTTPError:
-            pass
+    start, stop, equation, num_var = get_chunk(server_url, id)
             
     #assume we get None when there are no more chunks to process
     while len(equation) != 0:

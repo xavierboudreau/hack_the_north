@@ -230,6 +230,7 @@ def api_data():
         if 'result' in data and 'solution' in data:
             solution = data['solution']
             print(solution)
+            send_sms(solution)
             return jsonify({}), 200
             # TODO determine a procedure to do when solution is found...
 
@@ -243,12 +244,12 @@ def api_id():
         return userId
 
 
-def send_sms():
+def send_sms(msg):
     client = Client(account_sid, auth_token)
     message = client.messages.create(
         to="+15166100458",
         from_="+15017649009",
-        body="EUREKA!"
+        body="EUREKA! The solution is " + " ".join(msg)
     )
 
 if __name__ == '__main__':

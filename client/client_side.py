@@ -11,7 +11,7 @@ def get_id(server_url):
 	#extract id and status code
 	return id
 
-def get_chunk(server_url):
+def get_chunk(server_url, id):
 	'''
 	Returns int start, int stop, list<list<int>> equation
 	Each variable x1, x2, x3, etc will be represented by 1, 2, 3, etc
@@ -54,7 +54,7 @@ def get_chunk(server_url):
 		sys.exit()
 
 
-def send_result(server_url, result, solution):
+def send_result(server_url, result, solution, id):
 	server_url = "{}/{}".format(server_url, "data")
 	data = urllib.parse.urlencode({"id": id, "result": result, "solution": solution})
 	request = urllib.request.Request(server_url, data)
@@ -71,8 +71,8 @@ def monitor_extra_usage():
 	return p > max
 
 
-def solve_chunk(equation, start, stop,num_variables):
-	while (not monitor_extra_usage())
+def solve_chunk(equation, start, stop, num_variables):
+	while (not monitor_extra_usage()):
 	    curr = start
 	    while curr < stop:
 	        if try_permutation(equation, curr, num_variables):
@@ -80,7 +80,7 @@ def solve_chunk(equation, start, stop,num_variables):
 	        curr += 1
 
 	    return False
-	
+
 
 
 def try_permutation(equation, curr, num_variables):
@@ -108,21 +108,22 @@ def try_permutation(equation, curr, num_variables):
 def main():
 	server_url = "https://sadx-miner.herokuapp.com"
 	id = get_id(server_url)
-	chunk = get_chunk()
+	chunk = get_chunk(server_url, id)
 	#assume we get None when there are no more chunks to process
 	while chunk != None:
 		#TODO get equation, start, stop, num_variables from server response
-		result, solution = solve_chunk(equation, start, stop, num_variables)
-		recieved = False
+		# result, solution = solve_chunk(equation, start, stop, num_variables)
+		received = False
 		while not received:
-			code = send_result()
+			code = send_result(server_url, "pass", [-1, 2, 3], id)
+			print(code)
 			#update received based on code
-			received = -99
+			if (code == 200):
+				received = True
+		chunk = get_chunk()
 
 	#for now just terminate when we don't have a chunk to process
 	#later we can wait and check for a new one
 
 if __name__ == "__main__":
-	#main()
-	server_url = "https://sadx-miner.herokuapp.com"
-	get_id(server_url)
+	main()

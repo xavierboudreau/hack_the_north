@@ -22,11 +22,9 @@ def get_chunk(server_url, id):
     A negative int represents the complement
     e.g. -1 represents (NOT x1)
     '''
-    parameters = urllib.parse.urlencode({"id": id})
-    get_request = "{}/{}/{}?{}".format(server_url, 'api', 'data', parameters)
-    result = requests.get(get_request)
+    result = requests.get(server_url + '/api/data', params = {'id': id})
     json_result = result.text
-    pdb.set_trace()
+
 
     try:
         response_table = json.loads(json_result)
@@ -117,6 +115,7 @@ def main():
     server_url = "https://sadx-miner.herokuapp.com"
     #server_url = "http://127.0.0.1:5000"
     id = get_id(server_url)
+    sleep(1)
     start, stop, equation, num_var = get_chunk(server_url, id)
             
     #assume we get None when there are no more chunks to process
@@ -124,8 +123,11 @@ def main():
         result, solution = solve_chunk(equation, start, stop, num_var)
         send_result(server_url, result, solution, id)
         start, stop, equation, num_var = get_chunk(server_url, id)
+        print(start)
+        print(stop)
         if start == -1:
             break
+
 
         #for now just terminate when we don't have a chunk to process
         #later we can wait and check for a new one

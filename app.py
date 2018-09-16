@@ -203,7 +203,7 @@ def api_data():
         # if they didn't specify a user id, they're unauthorized
         if userId is None or userId is '' or userId not in chunkOfUser:
             print(1)
-            return "invalid user id", 401
+            return "invalid user id" + userId, 401
         # they're in our system and already working on a compute part, so don't assign them a new one
         if chunkOfUser[userId] is not None:
             print(3)

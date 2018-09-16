@@ -203,6 +203,7 @@ def api_data():
         # if they didn't specify a user id, they're unauthorized
         if userId is None or userId not in chunkOfUser:
             print(1)
+            print(chunkOfUser)
             return "invalid user id " + userId + " " + str(chunkOfUser), 401
         # they're in our system and already working on a compute part, so don't assign them a new one
         if chunkOfUser[userId] is not None:
@@ -249,7 +250,6 @@ def api_id():
         lock.acquire()
         chunkOfUser[userId] = None
         lock.release()
-        print(chunkOfUser)
         return userId
 
 

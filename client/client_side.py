@@ -19,7 +19,6 @@ def get_chunk(server_url):
 	e.g. -1 represents (NOT x1)
 	'''
 	parameters = urllib.parse.urlencode({"id": id})
-	parameters = parameters.encode("utf-8")
 	get_request = "{}/{}/{}?{}".format(server_url, 'api', 'data', parameters)
 	content = urllib.request.urlopen(get_request).read()
 	json_result = content.decode("utf-8")
@@ -42,7 +41,7 @@ def get_chunk(server_url):
 
 		try:
 			equation = response_table["equation"]
-			sys.exit()
+
 		except KeyError:
 			print(error_message.format("equations"))
 			sys.exit()
@@ -58,7 +57,6 @@ def get_chunk(server_url):
 def send_result(server_url, result, solution):
 	server_url = "{}/{}".format(server_url, "data")
 	data = urllib.parse.urlencode({"id": id, "result": result, "solution": solution})
-	data = data.encode("utf-8")
 	request = urllib.request.Request(server_url, data)
 	content = urllib.request.urlopen(request).read()
 
@@ -67,14 +65,14 @@ def send_result(server_url, result, solution):
 
 
 def monitor_extra_usage():
-	while(True):
-		print(psutil.cpu_percent(interval=1))
-		if (psutil.cpu_percent(interval=1) > 15):
-			return true;
+	#ret true if CPU usage is greater than MAX, else false
+	MAX = 30
+	p = psutil.cpu_percent(interval=1)
+	return p > max
 
 
 def solve_chunk(equation, start, stop,num_variables):
-	while (monitor_extra_usage != true)
+	while (not monitor_extra_usage())
 	    curr = start
 	    while curr < stop:
 	        if try_permutation(equation, curr, num_variables):
@@ -82,10 +80,10 @@ def solve_chunk(equation, start, stop,num_variables):
 	        curr += 1
 
 	    return False
-	exit()
+	
 
 
-def try_permutation(equation,curr,num_variables):
+def try_permutation(equation, curr, num_variables):
     variables = []
     for i in range(num_variables):
         literal = curr % 2

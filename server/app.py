@@ -5,7 +5,7 @@ import time
 import random
 import json
 import pdb
-
+import threading
 
 app = Flask(__name__)
 random.seed()
@@ -31,6 +31,25 @@ clientTimeline = PriorityQueue()
 COMP_TIME_LIMIT = 15
 solution = {'solution': None}
 
+def check_timeouts():
+	while len(clientTimeline.queue) > 0:
+		head = clientTimeline[0]
+		if head[0] > time.time():
+			curr = clientTimeline.get()
+			timed_out_chunk = chunkOfUser[curr[1]]
+			#TODO
+			#Keep track of which ids timeout and refuse their next chunk report
+			#i.e. don't accept their solution if they report True
+			chunkOfUser[curr[1]] = None
+			computeStack.append(timed_out_chunk)
+		else:
+			break
+	
+	#check timeouts every 30 seconds
+    call_freq = 30.0
+    t = threading.Timer(call_freq, check_timeouts)
+    t.daemon = True #finish when main finishes
+    t.start()
 
 @app.route('/api/data', methods=['GET', 'POST'])
 def api_data():
@@ -83,4 +102,10 @@ def api_id():
 
 if __name__ == '__main__':
     app.debug = True
+    #check timeouts every 30 seconds
+    call_freq = 30.0
+    t = threading.Timer(call_freq, check_timeouts)
+    t.daemon = True #finish when main finishes
+    t.start()
     app.run()
+    

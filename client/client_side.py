@@ -47,7 +47,7 @@ def get_chunk(server_url):
 			sys.exit()
 		
 		try:
-			num_variables = response_table["num variables"]
+			num_variables = response_table["num_variables"]
 		except KeyError:
 			print(error_message.format("num variables"))
 			sys.exit()
@@ -86,7 +86,7 @@ def solve_chunk(equation, start, stop,num_variables):
 	        	return success, solution
 	        curr += 1
 
-	    return False
+	    return False, None
 
 
 

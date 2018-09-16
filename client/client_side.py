@@ -109,7 +109,7 @@ def try_permutation(equation, curr, num_variables):
 def main():
 	server_url = "https://sadx-miner.herokuapp.com"
 	id = get_id(server_url)
-	chunk = get_chunk()
+	start, stop, equation = get_chunk(server_url)
 	#assume we get None when there are no more chunks to process
 	while chunk != None:
 		#TODO get equation, start, stop, num_variables from server response

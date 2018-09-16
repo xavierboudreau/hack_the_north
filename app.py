@@ -56,22 +56,15 @@ def round_up(num, divisor):
 
 def add_to_data(userId, increment):
     if userId not in userGraphData:
-        userGraphData[userId] = {"0": 0, "total": 0}
+        userGraphData[userId] = [("0",0)]
     pastChunksByTime = userGraphData[userId]
-    currentTimeInterval = round_up(time.time() - startTime, interval)
-    # pastTimeInterval = currentTimeInterval - interval
-    currentTimeInterval = str(currentTimeInterval)
-    # pastTimeInterval = str(pastTimeInterval)
-    # if currentTimeInterval in pastChunksByTime:
-    # total = pastChunksByTime[currentTimeInterval] + increment
-    total = pastChunksByTime["total"] + increment
-    pastChunksByTime[currentTimeInterval] = total
+    currentTimeInterval = time.time() - startTime
+    total = float(pastChunksByTime[len(pastChunksByTime)-1][0]) + currentTimeInterval
+    new_count = pastChunksByTime[len(pastChunksByTime)-1][1] + increment
+    pastChunksByTime.append((str(total),new_count))
     # else:
     #     total = pastTotal + increment
     #     pastChunksByTime[currentTimeInterval] = total
-    pastChunksByTime["total"] = total
-    print("data:")
-    print(userGraphData)
 
 def check_timeouts():
     while len(clientTimeline.queue) > 0:
@@ -257,7 +250,11 @@ def api_id():
 def api_graph_data():
     if request.method == 'GET':
         return jsonify(userGraphData)
-
+# dictionary that maps user id to another dictionary
+# this second one maps each time interval (every 10 seconds since startTime)
+# to the number of chunks done. so whenever adding a chunk, check to see which interval you're in and add accordingly
+# i.e. {"910590151" : {"10": 5, "20": 3, "30", 0, "40": 8}
+# example: {'7e8ebe47-b27c-4545-9935-bae6ce293e77': {'0': 0, 'total': 4, '110.0': 1, '120.0': 2, '130.0': 3, '140.0': 4}, '70c1130d-e887-40d5-98f1-e3aaae2d8dd2': {'0': 0, 'total': 1, '150.0': 1}}
 
 @app.route('/api/reset', methods=['GET'])
 def api_reset():

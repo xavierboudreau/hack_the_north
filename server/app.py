@@ -3,9 +3,8 @@ from queue import PriorityQueue
 import uuid
 import time
 import random
-from random import randint
-from random import sample
-
+import json
+import pdb
 
 
 app = Flask(__name__)
@@ -60,17 +59,17 @@ def api_data():
         # send the value
         return jsonify(computeDatum)
     elif request.method == 'POST':
-        data = request.form
-        print('data')
-        print(data)
+        data = request.get_json()
         userId = request.args.get('id')
         # if they didn't specify a user id, they're unauthorized
         if userId is None or userId is '' or 'result' not in data:
             return jsonify({}), 401
         chunkOfUser[userId] = None
-        if data.result and 'solution' in data:
-            solution = data.solution
-#             TODO determine a procedure to do when solution is found...
+        if 'result' in data and 'solution' in data:
+            solution = data['solution']
+            print(solution)
+            return jsonify({}), 200
+#           TODO determine a procedure to do when solution is found...
 
 
 @app.route('/api/id', methods=['GET'])

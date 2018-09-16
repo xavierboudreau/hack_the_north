@@ -5,6 +5,7 @@ import time
 import random
 from random import randint
 from random import sample
+import json
 
 app = Flask(__name__)
 random.seed()
@@ -31,7 +32,6 @@ COMP_TIME_LIMIT = 15
 solution = {'solution': None}
 clauses = 10
 variables = 24
-
 
 
 # computeStack = [{'start': 4000000, 'stop': 5000000, 'equation': [[]], 'num_variables': variables}]
@@ -179,6 +179,9 @@ def api_data():
         if chunkOfUser[userId] is not None:
             print(3)
             return jsonify({'start': None, 'stop': None, 'equation': None}), 200
+        # if there are no more hashes left
+        if len(computeStack) < 1:
+            return jsonify({'start': -1, 'stop': -1, 'equation': []}), 200
         # get their compute load and document it
         computeDatum = computeStack.pop()
         chunkOfUser[userId] = computeDatum
@@ -187,9 +190,12 @@ def api_data():
         # send the value
         return jsonify(computeDatum)
     elif request.method == 'POST':
-        data = request.get_json()
+        # print(request.data)
+        # data = request.get_json()
+        data = json.loads(request.data)
         userId = request.args.get('id')
         # if they didn't specify a user id, they're unauthorized
+        # print(data)
         if userId is None or userId is '' or 'result' not in data:
             return jsonify({}), 401
         chunkOfUser[userId] = None

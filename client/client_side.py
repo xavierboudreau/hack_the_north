@@ -81,6 +81,7 @@ def solve_chunk(equation, start, stop, num_variables):
         while curr < stop:
             success, solution = try_permutation(equation, curr, num_variables)
             if success:
+                print("SUCCESS")
                 return success, solution
             curr += 1
 
@@ -112,7 +113,7 @@ def try_permutation(equation, curr, num_variables):
 
 
 def main():
-    server_url = "https://sadx-miner.herokuapp.com"
+    server_url = "http://23.96.30.98"
     #server_url = "http://127.0.0.1:5000"
     id = get_id(server_url)
     sleep(1)

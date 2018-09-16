@@ -3,9 +3,12 @@ from queue import PriorityQueue
 import uuid
 import time
 import random
+from random import randint
+from random import sample
+
+
 
 app = Flask(__name__)
-
 random.seed()
 # chunkOfUser is a dict with keys of user's id and the chunk they're currently working on
 chunkOfUser = {}
@@ -43,6 +46,8 @@ def api_data():
             print(chunkOfUser)
             print(2)
             return jsonify({}), 401
+        if len(computeStack) < 1:
+            return jsonify({'start': -1, 'stop': -1, 'equation': []}), 200
         # they're in our system and already working on a compute part, so don't assign them a new one
         if chunkOfUser[userId] is not None:
             print(3)

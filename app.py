@@ -202,8 +202,6 @@ def api_data():
         userId = request.args.get('id')
         # if they didn't specify a user id, they're unauthorized
         if userId is None or userId not in chunkOfUser:
-            print(1)
-            print(chunkOfUser)
             return "invalid user id " + userId + " " + str(chunkOfUser), 401
         # they're in our system and already working on a compute part, so don't assign them a new one
         if chunkOfUser[userId] is not None:
@@ -214,7 +212,6 @@ def api_data():
             return jsonify({'start': -1, 'stop': -1, 'equation': []}), 200
         # get their compute load and document it
         computeDatum = computeStack.pop()
-        print(len(computeStack))
         chunkOfUser[userId] = computeDatum
         lock.release()
         # add their load to the priority queue
@@ -231,15 +228,14 @@ def api_data():
         if userId is None or userId is '' or 'result' not in data:
             return jsonify({}), 401
 
-        print(userId)
         lock.acquire()
         chunkOfUser[userId] = None
         lock.release()
-        print(chunkOfUser[userId])
+        print(data['result'])
         if 'result' in data and 'solution' in data:
+            print("WE MADE IT")
             solution = data['solution']
-            print(solution)
-            if 'result' in data == True:
+            if 'result' in data and data['result'] == True:
                 send_sms(solution)
             return jsonify({}), 200
 
@@ -271,11 +267,12 @@ def api_reset():
 
 
 def send_sms(msg):
+    print("WOW WE MADE IT TO THE END")
     client = Client(account_sid, auth_token)
     message = client.messages.create(
         to="+15166100458",
         from_="+15017649009",
-        body="EUREKA! The solution is FOUND!"
+        body="EUREKA! The solution is SUPER FOUND!"
     )
 
 

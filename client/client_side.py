@@ -4,11 +4,14 @@ import psutil
 import json
 import sys
 import requests
+from time import sleep
+import pdb
 
 def get_id(server_url):
     get_request = "{}/{}/{}".format(server_url, 'api','id')
-    content = urllib.request.urlopen(get_request).read()
-    id = content.decode("utf-8")
+    content = requests.get(get_request).text
+    id = content
+    print(id)
     #extract id and status code
     return id
 
@@ -19,10 +22,9 @@ def get_chunk(server_url, id):
     A negative int represents the complement
     e.g. -1 represents (NOT x1)
     '''
-    parameters = urllib.parse.urlencode({"id": id})
-    get_request = "{}/{}/{}?{}".format(server_url, 'api', 'data', parameters)
-    content = urllib.request.urlopen(get_request).read()
-    json_result = content.decode("utf-8")
+    result = requests.get(server_url + '/api/data', params = {'id': id})
+    json_result = result.text
+
 
     try:
         response_table = json.loads(json_result)
@@ -47,18 +49,24 @@ def get_chunk(server_url, id):
             print(error_message.format("equations"))
             sys.exit()
 
-        return start, stop, equation
+        try:
+            num_variables = response_table["num_variables"]
+        except KeyError:
+            print(error_message.format("equations"))
+            sys.exit()
+
+        return start, stop, equation, num_variables
 
 
     except json.JSONDecodeError:
         print("COULDN'T DESERIALIZE CHUNK. FAILING NOW")
-        sys.exit()
+        exit()
 
 
 def send_result(server_url, result, solution, id):
     parameters = urllib.parse.urlencode({"id": id})
     post_request = "{}/{}/{}?{}".format(server_url, 'api', 'data', parameters)
-    requests.post(post_request, json = {'result': result, 'solution': solution})
+    result = requests.post(post_request, json = {'result': result, 'solution': solution})
 
 def monitor_extra_usage():
     #return True if CPU usage is greater than MAX, else false
@@ -73,6 +81,7 @@ def solve_chunk(equation, start, stop, num_variables):
         while curr < stop:
             success, solution = try_permutation(equation, curr, num_variables)
             if success:
+                print("SUCCESS")
                 return success, solution
             curr += 1
 
@@ -89,6 +98,7 @@ def try_permutation(equation, curr, num_variables):
         variables.append((i+1)*literal)
         curr = curr // 2
 
+
     for clause in equation:
         l0 = clause[0]
         l1 = clause[1]
@@ -103,15 +113,22 @@ def try_permutation(equation, curr, num_variables):
 
 
 def main():
-    server_url = "https://sadx-miner.herokuapp.com"
-    # server_url = "http://127.0.0.1:5000"
+    server_url = "http://23.96.30.98"
+    #server_url = "http://127.0.0.1:5000"
     id = get_id(server_url)
-    start, stop, equation = get_chunk(server_url, id)
+    sleep(1)
+    start, stop, equation, num_var = get_chunk(server_url, id)
+
     #assume we get None when there are no more chunks to process
     while len(equation) != 0:
-        result, solution = solve_chunk(equation, start, stop, 16)
+        result, solution = solve_chunk(equation, start, stop, num_var)
         send_result(server_url, result, solution, id)
-        start, stop, equation = get_chunk(server_url, id)
+        start, stop, equation, num_var = get_chunk(server_url, id)
+        print(start)
+        print(stop)
+        if start == -1:
+            break
+
 
         #for now just terminate when we don't have a chunk to process
         #later we can wait and check for a new one

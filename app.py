@@ -11,6 +11,7 @@ import pdb
 import os
 import threading
 
+lock = threading.Lock()
 account_sid = "AC43d647b37856105ac82e47f42c9f439b"
 auth_token = os.environ["TWILIO"]
 app = Flask(__name__)
@@ -38,7 +39,7 @@ clientTimeline = PriorityQueue()
 COMP_TIME_LIMIT = 15
 solution = {'solution': None}
 clauses = 10
-variables = 24
+variables = 18
 
 
 # computeStack = [{'start': 4000000, 'stop': 5000000, 'equation': [[]], 'num_variables': variables}]
@@ -50,11 +51,15 @@ def check_timeouts():
         head = clientTimeline.queue[0]
         if head[0] > time.time():
             curr = clientTimeline.get()
+            lock.acquire()
             timed_out_chunk = chunkOfUser[curr[1]]
+            lock.release()
             # TODO
             # Keep track of which ids timeout and refuse their next chunk report
             # i.e. don't accept their solution if they report True
+            lock.acquire()
             chunkOfUser[curr[1]] = None
+            lock.release()
             computeStack.append(timed_out_chunk)
         else:
             break
@@ -62,10 +67,10 @@ def check_timeouts():
             # check timeouts every 30 seconds
 
 
-call_freq = 30.0
-t = threading.Timer(call_freq, check_timeouts)
-t.daemon = True  # finish when main finishes
-t.start()
+#call_freq = 30.0
+#t = threading.Timer(call_freq, check_timeouts)
+#t.daemon = True  # finish when main finishes
+#t.start()
 
 
 def make_three_sum(clauses=1000, variables=32):
@@ -186,23 +191,18 @@ def try_permutation(equation, curr, num_variables):
 
 equation = solveable_three_sum(clauses, variables)
 #    equation = make_three_sum(clauses)
-chunks = get_chunks_formatted(2 ** 10, 2 ** variables, equation, variables)
+chunks = get_chunks_formatted(2 ** 12, 2 ** variables, equation, variables)
 computeStack = chunks
 
 
 @app.route('/api/data', methods=['GET', 'POST'])
 def api_data():
     if request.method == 'GET':
+        lock.acquire()
         userId = request.args.get('id')
         # if they didn't specify a user id, they're unauthorized
-        if userId is None or userId is '':
-            print(1)
-            return jsonify({}), 401
-        # if their userId was never put into the system, they're also unauthorized
-        if userId not in chunkOfUser:
-            print(chunkOfUser)
-            print(2)
-            return jsonify({}), 401
+        if userId is None or userId not in chunkOfUser:
+            return "invalid user id " + userId + " " + str(chunkOfUser), 401
         # they're in our system and already working on a compute part, so don't assign them a new one
         if chunkOfUser[userId] is not None:
             print(3)
@@ -213,6 +213,7 @@ def api_data():
         # get their compute load and document it
         computeDatum = computeStack.pop()
         chunkOfUser[userId] = computeDatum
+        lock.release()
         # add their load to the priority queue
         clientTimeline.put(time.time() + COMP_TIME_LIMIT, userId)
         # send the value
@@ -226,30 +227,54 @@ def api_data():
         # print(data)
         if userId is None or userId is '' or 'result' not in data:
             return jsonify({}), 401
+
+        lock.acquire()
         chunkOfUser[userId] = None
+        lock.release()
+        print(data['result'])
         if 'result' in data and 'solution' in data:
+            print("WE MADE IT")
             solution = data['solution']
-            print(solution)
+            if 'result' in data and data['result'] == True:
+                send_sms(solution)
             return jsonify({}), 200
-            # TODO determine a procedure to do when solution is found...
 
 
 @app.route('/api/id', methods=['GET'])
 def api_id():
     if request.method == 'GET':
         userId = str(uuid.uuid4())
+        lock.acquire()
         chunkOfUser[userId] = None
-        print(chunkOfUser)
+        lock.release()
         return userId
 
 
-def send_sms():
+@app.route('/api/reset', methods=['GET'])
+def api_reset():
+    if request.method == 'GET':
+        global clientTimeline
+        clientTimeline = PriorityQueue()
+        global chunkOfUser
+        chunkOfUser = {}
+        global equation
+        equation = []
+        global chunks
+        chunks = []
+        global computeStack
+        computeStack = []
+        return jsonify({}), 200
+
+
+def send_sms(msg):
+    print("WOW WE MADE IT TO THE END")
     client = Client(account_sid, auth_token)
     message = client.messages.create(
         to="+15166100458",
         from_="+15017649009",
-        body="EUREKA!"
+        body="EUREKA! The solution is SUPER FOUND!"
     )
+
 
 if __name__ == '__main__':
     app.debug = True

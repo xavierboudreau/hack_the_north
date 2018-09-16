@@ -58,16 +58,7 @@ def get_chunk(server_url, id):
 def send_result(server_url, result, solution, id):
     parameters = urllib.parse.urlencode({"id": id})
     post_request = "{}/{}/{}?{}".format(server_url, 'api', 'data', parameters)
-
-    #json_out = json.dumps({'result': result, 'solution': solution})
-    #json_result = json.dumps(result)
-    #json_solution = json.dumps(solution)
-    #request = urllib.request.Request(post_request, json_out)
-    #content = urllib.request.urlopen(request)
-
-    r = requests.post(post_request, json = {'result': result, 'solution': solution})
-    print(r)
-    #extract and return result code
+    requests.post(post_request, json = {'result': result, 'solution': solution})
 
 def monitor_extra_usage():
     #return True if CPU usage is greater than MAX, else false
@@ -119,8 +110,7 @@ def main():
     #assume we get None when there are no more chunks to process
     while len(equation) != 0:
         result, solution = solve_chunk(equation, start, stop, 16)
-        code = send_result(server_url, result, solution, id)
-        print(code)
+        send_result(server_url, result, solution, id)
         start, stop, equation = get_chunk(server_url, id)
 
         #for now just terminate when we don't have a chunk to process

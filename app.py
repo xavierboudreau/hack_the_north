@@ -274,7 +274,7 @@ def send_sms(msg):
     message = client.messages.create(
         to="+15166100458",
         from_="+15017649009",
-        body="EUREKA! The solution is " + " ".join(str(x) for x in msg)
+        body="EUREKA! The solution is FOUND!"
     )
 
 

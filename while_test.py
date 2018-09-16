@@ -1,5 +1,0 @@
-import psutil
-
-print("Heyo")
-
-:

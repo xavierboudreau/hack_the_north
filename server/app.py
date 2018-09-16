@@ -6,8 +6,14 @@ import random
 import json
 import pdb
 import threading
+from twilio.rest import Client
+import os
+
+account_sid="AC43d647b37856105ac82e47f42c9f439b"
+auth_token=os.environ["TWILIO"]
 
 app = Flask(__name__)
+
 random.seed()
 # chunkOfUser is a dict with keys of user's id and the chunk they're currently working on
 chunkOfUser = {}
@@ -64,8 +70,6 @@ def api_data():
             print(chunkOfUser)
             print(2)
             return jsonify({}), 401
-        if len(computeStack) < 1:
-            return jsonify({'start': -1, 'stop': -1, 'equation': []}), 200
         # they're in our system and already working on a compute part, so don't assign them a new one
         if chunkOfUser[userId] is not None:
             print(3)
@@ -99,6 +103,13 @@ def api_id():
         print(chunkOfUser)
         return userId
 
+def send_sms():
+    client = Client(account_sid, auth_token)
+    message = client.messages.create(
+        to="+15166100458",
+        from_="+15017649009",
+        body="EUREKA!"
+    )
 
 if __name__ == '__main__':
     app.debug = True

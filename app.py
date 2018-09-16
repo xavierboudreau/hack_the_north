@@ -48,7 +48,7 @@ variables = 24
 
 def check_timeouts():
     while len(clientTimeline.queue) > 0:
-        head = clientTimeline[0]
+        head = clientTimeline.queue[0]
         if head[0] > time.time():
             curr = clientTimeline.get()
             lock.acquire()

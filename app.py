@@ -40,11 +40,38 @@ COMP_TIME_LIMIT = 15
 solution = {'solution': None}
 clauses = 10
 variables = 18
+startTime = time.time()
+# dictionary that maps user id to another dictionary
+# this second one maps each time interval (every 10 seconds since startTime)
+# to the number of chunks done. so whenever adding a chunk, check to see which interval you're in and add accordingly
+# i.e. {"910590151" : {"10": 5, "20": 3, "30", 0, "40": 8}
+userGraphData = {}
+# How often (in seconds) we want to plot the data
+interval = 10
 
 
-# computeStack = [{'start': 4000000, 'stop': 5000000, 'equation': [[]], 'num_variables': variables}]
-# computeStack = []
+def round_up(num, divisor):
+    return num + (divisor - num % divisor)
 
+
+def add_to_data(userId, increment):
+    if userId not in userGraphData:
+        userGraphData[userId] = {"0": 0, "total": 0}
+    pastChunksByTime = userGraphData[userId]
+    currentTimeInterval = round_up(time.time() - startTime, interval)
+    # pastTimeInterval = currentTimeInterval - interval
+    currentTimeInterval = str(currentTimeInterval)
+    # pastTimeInterval = str(pastTimeInterval)
+    # if currentTimeInterval in pastChunksByTime:
+    # total = pastChunksByTime[currentTimeInterval] + increment
+    total = pastChunksByTime["total"] + increment
+    pastChunksByTime[currentTimeInterval] = total
+    # else:
+    #     total = pastTotal + increment
+    #     pastChunksByTime[currentTimeInterval] = total
+    pastChunksByTime["total"] = total
+    print("data:")
+    print(userGraphData)
 
 def check_timeouts():
     while len(clientTimeline.queue) > 0:
@@ -67,10 +94,10 @@ def check_timeouts():
             # check timeouts every 30 seconds
 
 
-#call_freq = 30.0
-#t = threading.Timer(call_freq, check_timeouts)
-#t.daemon = True  # finish when main finishes
-#t.start()
+# call_freq = 30.0
+# t = threading.Timer(call_freq, check_timeouts)
+# t.daemon = True  # finish when main finishes
+# t.start()
 
 
 def make_three_sum(clauses=1000, variables=32):
@@ -142,31 +169,6 @@ def get_chunks_formatted(chunk_size, total_size, equation, num_var):
     return chunks
 
 
-# def master():
-# equation = solveable_three_sum(clauses, variables)
-#    equation = make_three_sum(clauses)
-# chunks = get_chunks_formatted(2 ** 10, 2 ** variables, equation, variables)
-# for chunk in chunks:
-#     if client(equation, chunk[0], chunk[1], variables):
-#         print("YAY")
-#         return
-
-# print("BOO")
-# return
-
-
-# def client(equation, start, stop, num_variables):
-# tests three sum from (start,stop]
-
-# curr = start
-# while curr < stop:
-#     if try_permutation(equation, curr, num_variables):
-#         return True
-#     curr += 1
-
-# return False
-
-
 def try_permutation(equation, curr, num_variables):
     variables = []
     for i in range(num_variables):
@@ -226,14 +228,15 @@ def api_data():
         # if they didn't specify a user id, they're unauthorized
         # print(data)
         if userId is None or userId is '' or 'result' not in data:
+            chunkOfUser[userId] = None
             return jsonify({}), 401
-
         lock.acquire()
         chunkOfUser[userId] = None
         lock.release()
         print(data['result'])
         if 'result' in data and 'solution' in data:
             print("WE MADE IT")
+            add_to_data(userId, 1)
             solution = data['solution']
             if 'result' in data and data['result'] == True:
                 send_sms(solution)
@@ -248,6 +251,12 @@ def api_id():
         chunkOfUser[userId] = None
         lock.release()
         return userId
+
+
+@app.route('/api/graphData', methods=['GET'])
+def api_graph_data():
+    if request.method == 'GET':
+        return jsonify(userGraphData)
 
 
 @app.route('/api/reset', methods=['GET'])

@@ -45,8 +45,14 @@ def get_chunk(server_url):
 		except KeyError:
 			print(error_message.format("equations"))
 			sys.exit()
-
-		return start, stop, equation
+		
+		try:
+			num_variables = response_table["num variables"]
+		except KeyError:
+			print(error_message.format("num variables"))
+			sys.exit()
+		
+		return start, stop, equation, num_variables
 
 
 	except json.JSONDecodeError:
@@ -119,7 +125,7 @@ def main():
 			code = send_result(server_url, result, solution)
 			#update received based on code
 			received = -99
-
+	
 	#for now just terminate when we don't have a chunk to process
 	#later we can wait and check for a new one
 

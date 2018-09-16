@@ -201,14 +201,9 @@ def api_data():
         lock.acquire()
         userId = request.args.get('id')
         # if they didn't specify a user id, they're unauthorized
-        if userId is None or userId is '':
+        if userId is None or userId is '' or userId not in chunkOfUser:
             print(1)
-            return jsonify({}), 401
-        # if their userId was never put into the system, they're also unauthorized
-        if userId not in chunkOfUser:
-            print(chunkOfUser)
-            print(2)
-            return jsonify({}), 401
+            return "invalid user id", 401
         # they're in our system and already working on a compute part, so don't assign them a new one
         if chunkOfUser[userId] is not None:
             print(3)

@@ -39,7 +39,7 @@ clientTimeline = PriorityQueue()
 COMP_TIME_LIMIT = 15
 solution = {'solution': None}
 clauses = 10
-variables = 24
+variables = 18
 
 
 # computeStack = [{'start': 4000000, 'stop': 5000000, 'equation': [[]], 'num_variables': variables}]
@@ -191,7 +191,7 @@ def try_permutation(equation, curr, num_variables):
 
 equation = solveable_three_sum(clauses, variables)
 #    equation = make_three_sum(clauses)
-chunks = get_chunks_formatted(2 ** 10, 2 ** variables, equation, variables)
+chunks = get_chunks_formatted(2 ** 12, 2 ** variables, equation, variables)
 computeStack = chunks
 
 
@@ -239,7 +239,8 @@ def api_data():
         if 'result' in data and 'solution' in data:
             solution = data['solution']
             print(solution)
-            send_sms(solution)
+            if 'result' in data == True:
+                send_sms(solution)
             return jsonify({}), 200
 
 

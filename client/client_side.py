@@ -117,7 +117,7 @@ def main():
     id = get_id(server_url)
     sleep(1)
     start, stop, equation, num_var = get_chunk(server_url, id)
-            
+
     #assume we get None when there are no more chunks to process
     while len(equation) != 0:
         result, solution = solve_chunk(equation, start, stop, num_var)
